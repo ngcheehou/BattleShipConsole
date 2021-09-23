@@ -17,11 +17,11 @@ namespace BattleShipConsole.Models
         public NavyAsset()
         {
 
-            Carrier = GeneratePosistion(CARRIER, AllPosition);
-            Battleship = GeneratePosistion(BATTLESHIP, AllPosition);
-            Destroyer = GeneratePosistion(DESTROYER, AllPosition);
-            Submarine = GeneratePosistion(SUBMARINE, AllPosition);
-            PatrolBoat = GeneratePosistion(PATROLBOAT, AllPosition);
+            Carrier = GeneratePosistion(CARRIER, AllShipsPosition);
+            Battleship = GeneratePosistion(BATTLESHIP, AllShipsPosition);
+            Destroyer = GeneratePosistion(DESTROYER, AllShipsPosition);
+            Submarine = GeneratePosistion(SUBMARINE, AllShipsPosition);
+            PatrolBoat = GeneratePosistion(PATROLBOAT, AllShipsPosition);
         }
 
         public int StepsTaken { get; set; } = 0;
@@ -31,7 +31,7 @@ namespace BattleShipConsole.Models
         public List<Position> Destroyer { get; set; }//3
         public List<Position> Submarine { get; set; }//3
         public List<Position> PatrolBoat { get; set; }//2
-        public List<Position> AllPosition { get; set; } = new List<Position>();
+        public List<Position> AllShipsPosition { get; set; } = new List<Position>();
         public List<Position> FirePositions { get; set; } = new List<Position>();
 
 
@@ -40,7 +40,7 @@ namespace BattleShipConsole.Models
         public bool IsDestroyerSunk { get; set; } = false;
         public bool IsSubmarineSunk { get; set; } = false;
         public bool IsPatrolBoatSunk { get; set; } = false;
-        public bool IsAllObliterated { get; set; } = false;
+        public bool IsObliteratedAll { get; set; } = false;
 
 
         public bool CheckCarrier { get; set; } = true;
@@ -59,7 +59,7 @@ namespace BattleShipConsole.Models
             IsPatrolBoatSunk = PatrolBoat.Where(P => !HitPositions.Any(H => P.x == H.x && P.y == H.y)).ToList().Count == 0;
 
 
-            IsAllObliterated = IsCarrierSunk && IsBattleshipSunk && IsDestroyerSunk && IsSubmarineSunk && IsPatrolBoatSunk;
+            IsObliteratedAll = IsCarrierSunk && IsBattleshipSunk && IsDestroyerSunk && IsSubmarineSunk && IsPatrolBoatSunk;
             return this;
         }
 

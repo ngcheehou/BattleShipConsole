@@ -11,7 +11,7 @@ namespace BattleShipConsole
         static void Main(string[] args)
         {
 
-            bool isShowShips = false;
+            bool isShowShips = false;//show enemy ships position
 
             NavyAsset MyNavyAsset = new NavyAsset();
             NavyAsset EnemyNavyAsset = new NavyAsset();
@@ -20,40 +20,43 @@ namespace BattleShipConsole
 
             Dictionary<char, int> Coordinates = PopulateDictionary();
             PrintHeader();
-            Console.WriteLine();
-            PrintMap(EnemyNavyAsset);
+            for (int h = 0; h < 19; h++)
+            {
+                Write(" ");
+            }
+
+
+            PrintMap(MyNavyAsset.FirePositions, MyNavyAsset, EnemyNavyAsset, isShowShips);
 
             int Game;
-            for (Game = 0; Game < 100; Game++)
+            for (Game = 1; Game < 101; Game++)
             {
                 MyNavyAsset.StepsTaken++;
 
-
                 Position position = new Position();
 
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.WriteLine("Input target.");
-                string input = Console.ReadLine();
+                ForegroundColor = ConsoleColor.White;
+                WriteLine("Enter firing position (e.g. A3).");
+                string input = ReadLine();
                 position = AnalyzeInput(input, Coordinates);
 
                 if (position.x == -1 || position.y == -1)
                 {
-                    Console.WriteLine("Invalid coordinates!");
+                    WriteLine("Invalid coordinates!");
                     Game--;
                     continue;
                 }
 
                 if (MyNavyAsset.FirePositions.Any(EFP => EFP.x == position.x && EFP.y == position.y))
                 {
-                    Console.WriteLine("This coordinate already being shot.");
+                    WriteLine("This coordinate already being shot.");
                     Game--;
                     continue;
                 }
 
-                for (int i = 0; i < 2; i++)
-                {
-                    EnemyNavyAsset.Fire();
-                }
+
+                EnemyNavyAsset.Fire();
+
 
                 var index = MyNavyAsset.FirePositions.FindIndex(p => p.x == position.x && p.y == position.y);
 
@@ -61,57 +64,59 @@ namespace BattleShipConsole
                     MyNavyAsset.FirePositions.Add(position);
 
                 Clear();
-                Console.WriteLine("Fire!!");
+               
 
 
-                MyNavyAsset.AllPosition.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
+                MyNavyAsset.AllShipsPosition.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
                 MyNavyAsset.CheckShipStatus(EnemyNavyAsset.FirePositions);
 
-                EnemyNavyAsset.AllPosition.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
+                EnemyNavyAsset.AllShipsPosition.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
                 EnemyNavyAsset.CheckShipStatus(MyNavyAsset.FirePositions);
 
                 PrintHeader();
                 for (int h = 0; h < 19; h++)
                 {
-                    Console.Write(" ");
+                    Write(" ");
                 }
 
-                PrintHeader();
-                Console.WriteLine();
 
-                PrintMapAfterAdjust(MyNavyAsset.FirePositions, MyNavyAsset, EnemyNavyAsset, isShowShips);
+
+                PrintMap(MyNavyAsset.FirePositions, MyNavyAsset, EnemyNavyAsset, isShowShips);
 
                 Commentator(MyNavyAsset, true);
                 Commentator(EnemyNavyAsset, false);
-                if (EnemyNavyAsset.IsAllObliterated || MyNavyAsset.IsAllObliterated)
-                { break; }
+                if (EnemyNavyAsset.IsObliteratedAll || MyNavyAsset.IsObliteratedAll) { break; }
+
 
             }
 
-            Console.ForegroundColor = ConsoleColor.White;
+            ForegroundColor = ConsoleColor.White;
 
-            if (EnemyNavyAsset.IsAllObliterated)
+            if (EnemyNavyAsset.IsObliteratedAll && !MyNavyAsset.IsObliteratedAll)
             {
-                Console.WriteLine("Game Ended, you win.");
+                WriteLine("Game Ended, you win.");
+            }
+            else if (!EnemyNavyAsset.IsObliteratedAll && MyNavyAsset.IsObliteratedAll)
+            {
+                WriteLine("Game Ended, you lose.");
             }
             else
-
             {
-                Console.WriteLine("Game Ended, you lose.");
+                WriteLine("Game Ended, draw.");
             }
 
-            Console.WriteLine("Total steps taken:{0} ", Game);
-            Console.ReadLine();
+            WriteLine("Total steps taken:{0} ", Game);
+            ReadLine();
 
 
         }
 
-        static void PrintStatistic(int x, int y, NavyAsset navyAsset, bool isMyBoard)
+        static void PrintStatistic(int x, int y, NavyAsset navyAsset)
         {
             if (x == 1 && y == 10)
             {
-                Console.ForegroundColor = ConsoleColor.White;
-                Console.Write("Indicator:    ");
+                ForegroundColor = ConsoleColor.White;
+                Write("Indicator:    ");
             }
 
 
@@ -119,13 +124,13 @@ namespace BattleShipConsole
             {
                 if (navyAsset.IsCarrierSunk)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Carrier [5]   ");
+                    ForegroundColor = ConsoleColor.Red;
+                    Write("Carrier [5]   ");
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.Write("Carrier [5]   ");
+                    ForegroundColor = ConsoleColor.DarkGreen;
+                    Write("Carrier [5]   ");
                 }
 
             }
@@ -134,13 +139,13 @@ namespace BattleShipConsole
             {
                 if (navyAsset.IsBattleshipSunk)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Battleship [4]");
+                    ForegroundColor = ConsoleColor.Red;
+                    Write("Battleship [4]");
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.Write("Battleship [4]");
+                    ForegroundColor = ConsoleColor.DarkGreen;
+                    Write("Battleship [4]");
                 }
             }
 
@@ -149,13 +154,13 @@ namespace BattleShipConsole
 
                 if (navyAsset.IsDestroyerSunk)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Destroyer [3] ");
+                    ForegroundColor = ConsoleColor.Red;
+                    Write("Destroyer [3] ");
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.Write("Destroyer [3] ");
+                    ForegroundColor = ConsoleColor.DarkGreen;
+                    Write("Destroyer [3] ");
                 }
             }
 
@@ -164,13 +169,13 @@ namespace BattleShipConsole
 
                 if (navyAsset.IsSubmarineSunk)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("Submarine [3] ");
+                    ForegroundColor = ConsoleColor.Red;
+                    Write("Submarine [3] ");
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.Write("Submarine [3] ");
+                    ForegroundColor = ConsoleColor.DarkGreen;
+                    Write("Submarine [3] ");
                 }
             }
 
@@ -179,13 +184,13 @@ namespace BattleShipConsole
 
                 if (navyAsset.IsPatrolBoatSunk)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write("PatrolBoat [2]");
+                    ForegroundColor = ConsoleColor.Red;
+                    Write("PatrolBoat [2]");
                 }
                 else
                 {
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
-                    Console.Write("PatrolBoat [2]");
+                    ForegroundColor = ConsoleColor.DarkGreen;
+                    Write("PatrolBoat [2]");
                 }
 
             }
@@ -195,25 +200,23 @@ namespace BattleShipConsole
             {
                 for (int i = 0; i < 14; i++)
                 {
-                    Console.Write(" ");
+                    Write(" ");
                 }
             }
 
-
-
         }
 
-        static void PrintMapAfterAdjust(List<Position> positions, NavyAsset MyNavyAsset, NavyAsset EnemyMyNavyAsset, bool showEnemyShips)
+        static void PrintMap(List<Position> positions, NavyAsset MyNavyAsset, NavyAsset EnemyMyNavyAsset, bool showEnemyShips)
         {
-
+            PrintHeader();
+            WriteLine();
             if (!showEnemyShips)
-                showEnemyShips = MyNavyAsset.IsAllObliterated;
-
-            Random random = new Random();
+                showEnemyShips = MyNavyAsset.IsObliteratedAll;
+           
             List<Position> SortedLFirePositions = positions.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
-            List<Position> SortedLShipsPositions = EnemyMyNavyAsset.AllPosition.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
+            List<Position> SortedShipsPositions = EnemyMyNavyAsset.AllShipsPosition.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
 
-            SortedLShipsPositions = SortedLShipsPositions.Where(FP => !SortedLFirePositions.Exists(ShipPos => ShipPos.x == FP.x && ShipPos.y == FP.y)).ToList();
+            SortedShipsPositions = SortedShipsPositions.Where(FP => !SortedLFirePositions.Exists(ShipPos => ShipPos.x == FP.x && ShipPos.y == FP.y)).ToList();
 
 
             int hitCounter = 0;
@@ -233,8 +236,8 @@ namespace BattleShipConsole
                         #region row indicator
                         if (y == 1)
                         {
-                            Console.ForegroundColor = ConsoleColor.DarkYellow;
-                            Console.Write("[" + row + "]");
+                            ForegroundColor = ConsoleColor.DarkYellow;
+                            Write("[" + row + "]");
                             row++;
                         }
                         #endregion
@@ -246,11 +249,11 @@ namespace BattleShipConsole
                             if (SortedLFirePositions.Count - 1 > hitCounter)
                                 hitCounter++;
 
-                            if (EnemyMyNavyAsset.AllPosition.Exists(ShipPos => ShipPos.x == x && ShipPos.y == y))
+                            if (EnemyMyNavyAsset.AllShipsPosition.Exists(ShipPos => ShipPos.x == x && ShipPos.y == y))
                             {
 
-                                Console.ForegroundColor = ConsoleColor.Red;
-                                Console.Write("[*]");
+                                ForegroundColor = ConsoleColor.Red;
+                                Write("[*]");
 
                                 //PrintStatistic(x, y, navyAsset,true);
                                 keepGoing = false;
@@ -259,10 +262,9 @@ namespace BattleShipConsole
                             }
                             else
                             {
-                                Console.ForegroundColor = ConsoleColor.Black;
-                                Console.Write("[X]");
+                                ForegroundColor = ConsoleColor.Black;
+                                Write("[X]");
 
-                                //PrintStatistic(x, y, navyAsset, true);
                                 keepGoing = false;
                                 //continue;
 
@@ -270,47 +272,37 @@ namespace BattleShipConsole
 
                         }
 
-                        if (keepGoing && showEnemyShips && SortedLShipsPositions.Count != 0 && SortedLShipsPositions[EnemyshipCounter].x == x && SortedLShipsPositions[EnemyshipCounter].y == y)
+                        if (keepGoing && showEnemyShips && SortedShipsPositions.Count != 0 && SortedShipsPositions[EnemyshipCounter].x == x && SortedShipsPositions[EnemyshipCounter].y == y)
 
                         {
 
-                            if (SortedLShipsPositions.Count - 1 > EnemyshipCounter)
+                            if (SortedShipsPositions.Count - 1 > EnemyshipCounter)
                                 EnemyshipCounter++;
 
-                            Console.ForegroundColor = ConsoleColor.DarkGreen;
-                            Console.Write("[O]");
-
-                            // PrintStatistic(x, y, navyAsset, true);
-                            keepGoing = false;
-                            //continue;
-
+                            ForegroundColor = ConsoleColor.DarkGreen;
+                            Write("[O]"); 
+                            keepGoing = false; 
                         }
 
                         if (keepGoing)
                         {
-                            Console.ForegroundColor = ConsoleColor.Blue;
-                            Console.Write("[~]");
+                            ForegroundColor = ConsoleColor.Blue;
+                            Write("[~]");
                         }
 
 
-                        PrintStatistic(x, y, MyNavyAsset, true);
-
+                        PrintStatistic(x, y, MyNavyAsset);
 
 
                         if (y == 10)
                         {
-                            Console.Write("      ");
+                            Write("      ");
 
-                            PrintMapAfterAdjustEnemy(x, row, MyNavyAsset, EnemyMyNavyAsset, ref myShipCounter, ref enemyHitCounter);
-                        }
-
+                            PrintMapOfEnemy(x, row, MyNavyAsset, EnemyMyNavyAsset, ref myShipCounter, ref enemyHitCounter);
+                        } 
                     }
 
-
-
-
-
-                    Console.WriteLine();
+                    WriteLine();
                 }
 
             }
@@ -320,19 +312,16 @@ namespace BattleShipConsole
             }
         }
 
-        static void PrintMapAfterAdjustEnemy(int x, char row, NavyAsset MyNavyAsset, NavyAsset EnemyNavyAsset, ref int MyshipCounter, ref int EnemyHitCounter)
+        static void PrintMapOfEnemy(int x, char row, NavyAsset MyNavyAsset, NavyAsset EnemyNavyAsset, ref int MyshipCounter, ref int EnemyHitCounter)
         {
             List<Position> EnemyFirePositions = new List<Position>();
             row--;
             Random random = new Random();
             List<Position> SortedLFirePositions = EnemyNavyAsset.FirePositions.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
-            List<Position> SortedLShipsPositions = MyNavyAsset.AllPosition.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
+            List<Position> SortedLShipsPositions = MyNavyAsset.AllShipsPosition.OrderBy(o => o.x).ThenBy(n => n.y).ToList();
 
             SortedLShipsPositions = SortedLShipsPositions.Where(FP => !SortedLFirePositions.Exists(ShipPos => ShipPos.x == FP.x && ShipPos.y == FP.y)).ToList();
-
-
-
-
+              
 
             try
             {
@@ -344,8 +333,8 @@ namespace BattleShipConsole
                     #region row indicator
                     if (y == 1)
                     {
-                        Console.ForegroundColor = ConsoleColor.DarkYellow;
-                        Console.Write("[" + row + "]");
+                        ForegroundColor = ConsoleColor.DarkYellow;
+                        Write("[" + row + "]");
                         row++;
                     }
                     #endregion
@@ -357,11 +346,11 @@ namespace BattleShipConsole
                         if (SortedLFirePositions.Count - 1 > EnemyHitCounter)
                             EnemyHitCounter++;
 
-                        if (MyNavyAsset.AllPosition.Exists(ShipPos => ShipPos.x == x && ShipPos.y == y))
+                        if (MyNavyAsset.AllShipsPosition.Exists(ShipPos => ShipPos.x == x && ShipPos.y == y))
                         {
 
-                            Console.ForegroundColor = ConsoleColor.Red;
-                            Console.Write("[*]");
+                            ForegroundColor = ConsoleColor.Red;
+                            Write("[*]");
 
                             //PrintStatistic(x, y, navyAsset,true);
                             keepGoing = false;
@@ -370,8 +359,8 @@ namespace BattleShipConsole
                         }
                         else
                         {
-                            Console.ForegroundColor = ConsoleColor.Black;
-                            Console.Write("[X]");
+                            ForegroundColor = ConsoleColor.Black;
+                            Write("[X]");
 
                             //PrintStatistic(x, y, navyAsset, true);
                             keepGoing = false;
@@ -388,8 +377,8 @@ namespace BattleShipConsole
                         if (SortedLShipsPositions.Count - 1 > MyshipCounter)
                             MyshipCounter++;
 
-                        Console.ForegroundColor = ConsoleColor.DarkGreen;
-                        Console.Write("[O]");
+                        ForegroundColor = ConsoleColor.DarkGreen;
+                        Write("[O]");
 
                         // PrintStatistic(x, y, navyAsset, true);
                         keepGoing = false;
@@ -399,18 +388,15 @@ namespace BattleShipConsole
 
                     if (keepGoing)
                     {
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.Write("[~]");
+                        ForegroundColor = ConsoleColor.Blue;
+                        Write("[~]");
                     }
 
 
-                    PrintStatistic(x, y, EnemyNavyAsset, true);
+                    PrintStatistic(x, y, EnemyNavyAsset);
 
                 }
-
-
-                // Console.WriteLine();
-
+                 
 
             }
             catch (Exception e)
@@ -424,8 +410,6 @@ namespace BattleShipConsole
             Position pos = new Position();
 
             char[] inputSplit = input.ToUpper().ToCharArray();
-            string[] inputSplit2 = input.Split();
-
 
 
             if (inputSplit.Length < 2 || inputSplit.Length > 4)
@@ -476,58 +460,14 @@ namespace BattleShipConsole
 
         static void PrintHeader()
         {
-            Console.ForegroundColor = ConsoleColor.DarkYellow;
-            Console.Write("[ ]");
+            ForegroundColor = ConsoleColor.DarkYellow;
+            Write("[ ]");
             for (int i = 1; i < 11; i++)
-                Console.Write("[" + i + "]");
+                Write("[" + i + "]");
 
 
         }
 
-        static void PrintMap(NavyAsset navyAsset)
-        {
-            Random random = new Random();
-
-
-            char row = 'A';
-
-            for (int i = 1; i < 11; i++)
-            {
-
-
-                for (int y = 1; y < 11; y++)
-                {
-                    #region row indicator
-                    if (y == 0)
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkYellow;
-                        Console.Write("[" + row + "]");
-                        row++;
-                    }
-                    #endregion
-
-                    if (random.Next(1, 100) > 0)
-                    {
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.Write("[~]");
-                    }
-                    else if (random.Next(0, 100) > 20)
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkGreen;
-                        Console.Write("[O]");
-                    }
-                    else
-                    {
-                        Console.ForegroundColor = ConsoleColor.DarkRed;
-                        Console.Write("[*]");
-                    }
-                    PrintStatistic(i, y, navyAsset, true);
-
-                }
-                Console.WriteLine();
-
-            }
-        }
 
         static Dictionary<char, int> PopulateDictionary()
         {
@@ -556,40 +496,38 @@ namespace BattleShipConsole
 
             if (navyAsset.CheckPBattleship && navyAsset.IsBattleshipSunk)
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("{0} {1} is sunk", title, nameof(navyAsset.Battleship));
+                ForegroundColor = ConsoleColor.DarkRed;
+                WriteLine("{0} {1} is sink", title, nameof(navyAsset.Battleship));
                 navyAsset.CheckPBattleship = false;
             }
 
             if (navyAsset.CheckCarrier && navyAsset.IsCarrierSunk)
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("{0} {1} is sunk", title, nameof(navyAsset.Carrier));
+                ForegroundColor = ConsoleColor.DarkRed;
+                WriteLine("{0} {1} is sink", title, nameof(navyAsset.Carrier));
                 navyAsset.CheckCarrier = false;
             }
 
             if (navyAsset.CheckDestroyer && navyAsset.IsDestroyerSunk)
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("{0} {1} is sunk", title, nameof(navyAsset.Destroyer));
+                ForegroundColor = ConsoleColor.DarkRed;
+                WriteLine("{0} {1} is sink", title, nameof(navyAsset.Destroyer));
                 navyAsset.CheckDestroyer = false;
             }
 
             if (navyAsset.CheckPatrolBoat && navyAsset.IsPatrolBoatSunk)
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("{0} {1} is sunk", title, nameof(navyAsset.PatrolBoat));
+                ForegroundColor = ConsoleColor.DarkRed;
+                WriteLine("{0} {1} is sink", title, nameof(navyAsset.PatrolBoat));
                 navyAsset.CheckPatrolBoat = false;
             }
 
             if (navyAsset.CheckSubmarine && navyAsset.IsSubmarineSunk)
             {
-                Console.ForegroundColor = ConsoleColor.DarkRed;
-                Console.WriteLine("{0} {1} is sunk", title, nameof(navyAsset.Submarine));
+                ForegroundColor = ConsoleColor.DarkRed;
+                WriteLine("{0} {1} is sink", title, nameof(navyAsset.Submarine));
                 navyAsset.CheckSubmarine = false;
             }
-
-
             // navyAsset.IsBattleshipSunk
 
         }
