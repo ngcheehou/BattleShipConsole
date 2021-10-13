@@ -5,7 +5,7 @@ using System.Text;
 
 namespace BattleShipConsole.Models
 {
-    class NavyAsset
+    public class NavyAsset
     {
         Random random = new Random();
         private const int CARRIER = 5;
